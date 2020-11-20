@@ -1,3 +1,5 @@
+'''Initial tests to use autotrace as library (ctypes)'''
+
 import ctypes
 import os.path
 

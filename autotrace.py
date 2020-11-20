@@ -1,3 +1,5 @@
+'''Wrapper for autotrace library (using ctypes)'''
+
 import ctypes
 import os.path
 
