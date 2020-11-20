@@ -23,13 +23,14 @@ def trace(img_path, *extra_args):
     return res.stdout
 
 
-def test_trace(img_path, bg_color='ffffff', size=1000):
+def test_trace(img_path, bg_color='ffffff'):
     '''Trace and render back to PNG for verification'''
     svg_data = trace(img_path, '-background-color', 'bg_color', '-centerline')
     # print(svg_data[0:100])
     root, _ = os.path.splitext( os.path.basename(img_path) )
-    dest = 'traced/' + root + '.png'
-    png_data = cairosvg.svg2png(bytestring=svg_data, write_to=dest, scale=10)
+    dest = 'traced/' + root
+    with open(dest+'.svg', 'wb') as f: f.write(svg_data)
+    png_data = cairosvg.svg2png(bytestring=svg_data, write_to=dest+'.png', scale=10)
 
 test_trace('img/test/triangle_1px.png')
-# test_trace('img/test/triangle_2px.png')
+test_trace('img/test/triangle_2px.png')

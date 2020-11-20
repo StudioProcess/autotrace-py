@@ -50,7 +50,7 @@ class at_real_coord(ctypes.Structure):
         ('z', gfloat)
     ]
     def __repr__(self):
-        return f'({self.x},{self.y},{self.z})'
+        return f'({self.x:.1f}, {self.y:.1f}, {self.z:.1f})'
 
 class at_color(ctypes.Structure):
     _fields_ = [
@@ -82,6 +82,8 @@ class at_spline(ctypes.Structure):
         ('degree', at_polynomial_degree),
         ('linearity', gfloat)
     ]
+    def __repr__(self):
+        return f'v0={self.v[0]} v1={self.v[1]} v2={self.v[2]} v3={self.v[3]} degree={self.degree} linearity={self.linearity:.2f}'
 
 # one path/outline (multiple connected splines)
 class at_spline_list(ctypes.Structure):
@@ -250,7 +252,7 @@ print()
 at.at_splines_new.argtype = [ctypes.POINTER(at_bitmap), ctypes.POINTER(at_fitting_opts)]
 at.at_splines_new.restype = ctypes.POINTER(at_splines)
 
-opts = at.at_fitting_opts_new()
+# opts = at.at_fitting_opts_new()
 # opts.contents.centerline = 1
 # bitmap = at.at_bitmap_new( 640, 480, 3 )
 # splines = at.at_splines_new( bitmap, opts, None, None ).contents
@@ -268,12 +270,15 @@ opts = at.at_fitting_opts_new()
 def to_at_bitmap(img_path):
     img = Image.open(img_path)
     bmp = at.at_bitmap_new( img.width, img.height, 3 );
+    # bitmap is: r00, g00, b00, r10, g10, b10, ...
     img_data = np.asarray(img).flatten()
     bmp_data = bmp.contents.bitmap
     for i, x in enumerate(img_data): bmp_data[i] = int(x)
     return bmp
 
-bmp = to_at_bitmap('img/test/triangle_full.png')
+bmp = to_at_bitmap('img/test/triangle_2px.png')
+opts = at.at_fitting_opts_new()
+opts.contents.centerline = 1
 splines = splines = at.at_splines_new( bmp, opts, None, None ).contents
 print(splines)
 print(splines.data)
@@ -287,6 +292,12 @@ print(splines.width_weight_factor)
 print()
 
 for i in range(splines.length):
-    s = splines.data[i]
-    print(f'path {i} ({s.length}) {s.color}')
+    path = splines.data[i]
+    print(f'path {i} ({path.length}) {path.color}')
+    for i in range(path.length):
+        print(f'    {path.data[i]}')
 
+# paths: 
+# * origin is bottom left ie. y+ points up
+# * degree 1: v0 and v3 are begin and end. v1 and v2 are ignored in SVG output
+# * degree 3: v0 = start point, v1 = first control point, v2 = 2nd control point v3 = end point
