@@ -135,6 +135,9 @@ class at_fitting_opts(ctypes.Structure):
 at.at_fitting_opts_new.argtype = []
 at.at_fitting_opts_new.restype = ctypes.POINTER(at_fitting_opts)
 
+at.at_fitting_opts_free.argtype = [ctypes.POINTER(at_fitting_opts)]
+at.at_fitting_opts_free.restype = None
+
 at.at_bitmap_new.argtype = [ctypes.c_ushort, ctypes.c_ushort, ctypes.c_uint]
 at.at_bitmap_new.restype = ctypes.POINTER(at_bitmap)
 
@@ -165,6 +168,9 @@ at.at_bitmap_get_color.restype = None
 at.at_splines_new.argtype = [ctypes.POINTER(at_bitmap), ctypes.POINTER(at_fitting_opts)]
 at.at_splines_new.restype = ctypes.POINTER(at_splines)
 
+at.at_splines_free.argtype = [ctypes.POINTER(at_splines)]
+at.at_splines_free.restype = None
+
 def to_at_bitmap(img_path):
     img = Image.open(img_path)
     bmp = at.at_bitmap_new( img.width, img.height, 3 );
@@ -176,6 +182,7 @@ def to_at_bitmap(img_path):
 
 # Export relevant functions from at
 at_fitting_opts_new = at.at_fitting_opts_new
+at_fitting_opts_free = at.at_fitting_opts_free
 at_bitmap_new = at.at_bitmap_new
 at_bitmap_free = at.at_bitmap_free
 at_input_get_handler = at.at_input_get_handler
@@ -185,3 +192,4 @@ at_bitmap_get_height = at.at_bitmap_get_height
 at_bitmap_get_planes = at.at_bitmap_get_planes
 at_bitmap_get_color = at.at_bitmap_get_color
 at_splines_new = at.at_splines_new
+at_splines_free = at.at_splines_free

@@ -117,19 +117,11 @@ print()
 # print(splines.width_weight_factor)
 # print()
 
-def to_at_bitmap(img_path):
-    img = Image.open(img_path)
-    bmp = at.at_bitmap_new( img.width, img.height, 3 );
-    # bitmap is: r00, g00, b00, r10, g10, b10, ...
-    img_data = np.asarray(img).flatten()
-    bmp_data = bmp.contents.bitmap
-    for i, x in enumerate(img_data): bmp_data[i] = int(x)
-    return bmp
 
-bmp = to_at_bitmap('img/test/triangle_2px.png')
+bmp = at.to_at_bitmap('img/test/triangle_2px.png')
 opts = at.at_fitting_opts_new()
 opts.contents.centerline = 1
-splines = splines = at.at_splines_new( bmp, opts, None, None ).contents
+splines = at.at_splines_new( bmp, opts, None, None ).contents
 print(splines)
 print(splines.data)
 print(splines.length)
