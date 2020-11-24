@@ -2,6 +2,8 @@
 
 import ctypes
 import os.path
+from PIL import Image
+import numpy as np
 
 lib_path = 'lib/autotrace.app/Contents/Frameworks/libautotrace.dylib'
 
@@ -82,6 +84,8 @@ class at_spline(ctypes.Structure):
         ('degree', at_polynomial_degree),
         ('linearity', gfloat)
     ]
+    def __repr__(self):
+        return f'v0={self.v[0]} v1={self.v[1]} v2={self.v[2]} v3={self.v[3]} degree={self.degree} linearity={self.linearity:.2f}'
 
 # one path/outline (multiple connected splines)
 class at_spline_list(ctypes.Structure):
@@ -134,6 +138,9 @@ at.at_fitting_opts_new.restype = ctypes.POINTER(at_fitting_opts)
 at.at_bitmap_new.argtype = [ctypes.c_ushort, ctypes.c_ushort, ctypes.c_uint]
 at.at_bitmap_new.restype = ctypes.POINTER(at_bitmap)
 
+at.at_bitmap_free.argtype = [ctypes.POINTER(at_bitmap)]
+at.at_bitmap_free.restype = None
+
 # at.at_bitmap_read.restype = ctypes.POINTER(at_bitmap)
 # at.at_bitmap_copy.restype = ctypes.POINTER(at_bitmap)
 
@@ -158,3 +165,23 @@ at.at_bitmap_get_color.restype = None
 at.at_splines_new.argtype = [ctypes.POINTER(at_bitmap), ctypes.POINTER(at_fitting_opts)]
 at.at_splines_new.restype = ctypes.POINTER(at_splines)
 
+def to_at_bitmap(img_path):
+    img = Image.open(img_path)
+    bmp = at.at_bitmap_new( img.width, img.height, 3 );
+    # bitmap is: r00, g00, b00, r10, g10, b10, ...
+    img_data = np.asarray(img).flatten()
+    bmp_data = bmp.contents.bitmap
+    for i, x in enumerate(img_data): bmp_data[i] = int(x)
+    return bmp
+
+# Export relevant functions from at
+at_fitting_opts_new = at.at_fitting_opts_new
+at_bitmap_new = at.at_bitmap_new
+at_bitmap_free = at.at_bitmap_free
+at_input_get_handler = at.at_input_get_handler
+at_input_get_handler_by_suffix = at.at_input_get_handler_by_suffix
+at_bitmap_get_width = at.at_bitmap_get_width
+at_bitmap_get_height = at.at_bitmap_get_height
+at_bitmap_get_planes = at.at_bitmap_get_planes
+at_bitmap_get_color = at.at_bitmap_get_color
+at_splines_new = at.at_splines_new
