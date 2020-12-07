@@ -1,4 +1,7 @@
-'''Wrapper for autotrace library (using ctypes)'''
+'''Wrapper for autotrace library (using ctypes)
+https://github.com/autotrace/autotrace
+https://github.com/autotrace/autotrace/blob/master/src/autotrace.h
+'''
 
 import ctypes
 import os.path
