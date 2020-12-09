@@ -48,7 +48,9 @@ import time
 # image_path = 'img/test/triangle_1px.png'
 image_path = 'img/test/triangle_2px.png'
 # image_path = 'img/pre1/5660_3_2.tga'
-n = 100
+image_path = 'img/test/trace01.bmp'
+n = 1000
+gray = False
 
 class Timer():
     def __init__(self):
@@ -65,7 +67,7 @@ class Timer():
 timer = Timer()
 total = 0
 
-bmp = at.to_at_bitmap(image_path)
+bmp = at.to_at_bitmap(image_path, gray=gray)
 opts = at.at_fitting_opts_new()
 opts.contents.centerline = 1
 opts.contents.despeckle_level = 20

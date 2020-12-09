@@ -174,13 +174,14 @@ at.at_splines_new.restype = ctypes.POINTER(at_splines)
 at.at_splines_free.argtype = [ctypes.POINTER(at_splines)]
 at.at_splines_free.restype = None
 
-def to_at_bitmap(img_or_path):
+def to_at_bitmap(img_or_path, gray=False):
     '''
     img_or_path: PIL.Image.Image or path to image (str)
     '''
     img = img_or_path
-    if type(img) == str: img = Image.open(img_path)
-    bmp = at.at_bitmap_new( img.width, img.height, 3 );
+    if type(img) == str: img = Image.open(img_or_path)
+    if gray: img = img.convert('L')
+    bmp = at.at_bitmap_new( img.width, img.height, 1 if gray else 3 );
     # bitmap is: r00, g00, b00, r10, g10, b10, ...
     img_data = np.asarray(img).flatten()
     bmp_data = bmp.contents.bitmap

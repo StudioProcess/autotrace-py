@@ -107,8 +107,7 @@ os.makedirs(out, exist_ok=True)
 for image_path in files:
     img = Image.open(image_path)
     img = ImageOps.invert(img)
-    bmp = at.to_at_bitmap(img)
-
+    bmp = at.to_at_bitmap(img, gray=True)
     timer.start()
     splines = at.at_splines_new( bmp, opts, None, None )
     d = at_splines_to_path(splines, bmp.contents.height)
