@@ -9,14 +9,18 @@ import os.path
 from PIL import Image, ImageOps
 import shutil
 import subprocess
+import sys
 
 # image_path = 'img/test/triangle_2px.png'
-image_glob = 'img_seq/lines1/*.png'
-out = 'traced_seq/lines1'
+image_glob = 'img_seq/inference-merge/*.png'
+out = 'traced_seq/inference-merge'
 
-# scale = 4
-# level_black = 20
-# level_white = 200
+# pre-processing
+pre_scale = 4
+pre_levels = (0, 0) # percent of range default: (2, 10)
+pre_threshold = 5 # percent of range
+pre_invert = True
+pre_equalize = False
 
 video_fps = 1
 
@@ -24,11 +28,9 @@ video_fps = 1
 in_video_scale = 1
 in_video_pad = 2
 
-svg_render_scale = 2
+svg_render_scale = 1
 out_video_scale = 1
-out_video_pad = 1
-
-
+out_video_pad = 2
 
 
 class Timer():
@@ -45,6 +47,8 @@ class Timer():
 
 timer = Timer()
 time_total = 0
+time_min = sys.maxsize
+time_max = 0
 
 # * origin is bottom left ie. y+ points up
 # * degree 1: v0 and v3 are begin and end. v1 and v2 are ignored in SVG output
@@ -103,10 +107,15 @@ opts.contents.despeckle_level = 20
 opts.contents.despeckle_tightness = 0.1
 
 os.makedirs(out, exist_ok=True)
+os.makedirs(f'{out}/in_pre', exist_ok=True)
 
 for image_path in files:
     img = Image.open(image_path)
-    img = ImageOps.invert(img)
+    if pre_scale > 1: img = ImageOps.scale(img, pre_scale)
+    if pre_levels[0] > 0 or pre_levels[1] > 0: img = ImageOps.autocontrast(img, pre_levels)
+    if pre_threshold > 0: img = img.point(lambda i: 0 if i < pre_threshold/100*255 else 255)
+    if pre_invert: img = ImageOps.invert(img)
+    if pre_equalize: img = ImageOps.equalize(img)
     bmp = at.to_at_bitmap(img, gray=True)
     timer.start()
     splines = at.at_splines_new( bmp, opts, None, None )
@@ -115,27 +124,36 @@ for image_path in files:
     t = timer.stop()
     time_total += t
     print(f't = {t*1000:.1f} ms')
+    if t > time_max: time_max = t
+    if t < time_min: time_min = t
 
     svg = path_to_svg(d, bmp.contents.width, bmp.contents.height)
     root, _ = os.path.splitext( os.path.basename(image_path) )
-    outfile = out + '/' + root + '.png'
-    cairosvg.svg2png(bytestring=svg.encode('utf-8'), scale=svg_render_scale, write_to=outfile)
+    img.save(f'{out}/in_pre/{root}.png') # save preprocessed image
+    cairosvg.svg2png(bytestring=svg.encode('utf-8'), scale=svg_render_scale, write_to=f'{out}/{root}.png') # save rendered svg
     at.at_bitmap_free(bmp)
 
 # create video from PNGs
 if shutil.which('ffmpeg') is not None:
     print('\nRendering input video...')
-    subprocess.run(['ffmpeg', '-r', str(video_fps), '-pattern_type', 'glob', '-i', f'{image_glob}', '-vcodec', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '25', '-movflags', '+faststart', '-preset', 'veryslow', '-vf', f'scale=iw*{in_video_scale}:-1:flags=neighbor,pad=iw*{in_video_pad}:ih*{in_video_pad}:-1:-1:Gray', f'{out}/_in.mp4'])
+    subprocess.run(['ffmpeg', '-y', '-r', str(video_fps), '-pattern_type', 'glob', '-i', f'{image_glob}', '-vcodec', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '25', '-movflags', '+faststart', '-preset', 'veryslow', '-vf', f'scale=iw*{pre_scale*in_video_scale}:-1:flags=neighbor,pad=iw*{in_video_pad}:ih*{in_video_pad}:-1:-1:Gray', f'{out}/_in.mp4'])
+    
+    print('\nRendering preprocessed input video...')
+    subprocess.run(['ffmpeg', '-y', '-r', str(video_fps), '-pattern_type', 'glob', '-i', f'{out}/in_pre/*.png', '-vcodec', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '25', '-movflags', '+faststart', '-preset', 'veryslow', '-vf', f'scale=iw*{in_video_scale}:-1:flags=neighbor,pad=iw*{in_video_pad}:ih*{in_video_pad}:-1:-1:Gray', f'{out}/_in_pre.mp4'])
     
     print('\nRendering output video...')
-    subprocess.run(['ffmpeg', '-r', str(video_fps), '-pattern_type', 'glob', '-i', f'{out}/*.png', '-vcodec', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '25', '-movflags', '+faststart', '-preset', 'veryslow', '-vf', f'scale=iw*{out_video_scale}:-1:flags=neighbor,pad=iw*{out_video_pad}:ih*{out_video_pad}:-1:-1:Gray', f'{out}/_out.mp4'])
+    subprocess.run(['ffmpeg', '-y', '-r', str(video_fps), '-pattern_type', 'glob', '-i', f'{out}/*.png', '-vcodec', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '25', '-movflags', '+faststart', '-preset', 'veryslow', '-vf', f'scale=iw*{out_video_scale}:-1:flags=neighbor,pad=iw*{out_video_pad}:ih*{out_video_pad}:-1:-1:Gray', f'{out}/_out.mp4'])
+    
+    # print('\nRendering composite video...')
+    # subprocess.run(['ffmpeg', '-y', '-i', f'{out}/_in.mp4', '-i', f'{out}/_out.mp4', '-filter_complex', '[0:v]pad=iw*2:ih[int];[int][1:v]overlay=W/2:0[vid]', '-map', '[vid]', f'{out}/_comp.mp4'])
     
     print('\nRendering composite video...')
-    subprocess.run(['ffmpeg', '-i', f'{out}/_in.mp4', '-i', f'{out}/_out.mp4', '-filter_complex', '[0:v]pad=iw*2:ih[int];[int][1:v]overlay=W/2:0[vid]', '-map', '[vid]', f'{out}/_comp.mp4'])
+    subprocess.run(['ffmpeg', '-y', '-i', f'{out}/_in.mp4', '-i', f'{out}/_in_pre.mp4', '-i', f'{out}/_out.mp4', '-filter_complex', '[0:v]pad=iw*3:ih[a];[a][1:v]overlay=W/3:0[b];[b][2:v]overlay=W/3*2:0[out]', '-map', '[out]', f'{out}/_comp.mp4'])
 else:
     print('Skipping video (ffmpeg not installed)')
 
-print(f'\nt_average = {time_total*1000/len(files):.1f} ms')
-
+print(f'\nt_min = {time_min*1000:.1f} ms')
+print(f't_max = {time_max*1000:.1f} ms')
+print(f't_average = {time_total*1000/len(files):.1f} ms')
 at.at_fitting_opts_free(opts)
 
