@@ -12,13 +12,13 @@ import subprocess
 import sys
 
 # image_path = 'img/test/triangle_2px.png'
-image_glob = 'img_seq/inference-merge/*.png'
-out = 'traced_seq/inference-merge'
+image_glob = 'img_seq/patch_scale3_large/*.png'
+out = 'traced_seq/patch_scale3_large'
 
 # pre-processing
-pre_scale = 4
+pre_scale = 2
 pre_levels = (0, 0) # percent of range default: (2, 10)
-pre_threshold = 5 # percent of range
+pre_threshold = 10 # percent of range
 pre_invert = True
 pre_equalize = False
 

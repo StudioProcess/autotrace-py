@@ -4,3 +4,6 @@ venv
 .venv
 img/temp.ppm
 __pycache__
+
+img_seq
+traced_seq
