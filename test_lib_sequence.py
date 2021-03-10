@@ -16,19 +16,19 @@ image_glob = 'img_seq/patch_scale3_large/*.png'
 out = 'traced_seq/patch_scale3_large'
 
 # pre-processing
-pre_scale = 2
+pre_scale = 0.5
 pre_levels = (0, 0) # percent of range default: (2, 10)
-pre_threshold = 10 # percent of range
+pre_threshold = 15 # percent of range
 pre_invert = True
 pre_equalize = False
 
 video_fps = 1
 
-# total in scale should match total svg+out scale (for side-by-side video comp)
-in_video_scale = 1
+# total in_scale should match total svg * out_scale (for side-by-side video comp)
+in_video_scale = 4
 in_video_pad = 2
 
-svg_render_scale = 1
+svg_render_scale = 4
 out_video_scale = 1
 out_video_pad = 2
 
@@ -111,7 +111,7 @@ os.makedirs(f'{out}/in_pre', exist_ok=True)
 
 for image_path in files:
     img = Image.open(image_path)
-    if pre_scale > 1: img = ImageOps.scale(img, pre_scale)
+    if pre_scale > 0: img = ImageOps.scale(img, pre_scale)
     if pre_levels[0] > 0 or pre_levels[1] > 0: img = ImageOps.autocontrast(img, pre_levels)
     if pre_threshold > 0: img = img.point(lambda i: 0 if i < pre_threshold/100*255 else 255)
     if pre_invert: img = ImageOps.invert(img)
