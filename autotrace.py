@@ -7,22 +7,41 @@ import ctypes
 import os.path
 from PIL import Image
 import numpy as np
+import platform
+import shutil
 
-lib_path = 'lib/autotrace.app/Contents/Frameworks/libautotrace.dylib'
+_os = platform.system()
+
+if _os not in ['Darwin', 'Linux']: raise RuntimeError(f'Platform not supported: {_os}')
+
+# check that autotrace is installed
+if _os == 'Linux' and shutil.which('autotrace') == None:
+    raise RuntimeError(f'Please make sure autotrace is installed by running: sudo apt install lib/linux/autotrace_0.40.0-20200219_all.deb')
+
+lib_path = {
+    'Darwin': 'lib/darwin/autotrace.app/Contents/Frameworks/libautotrace.dylib',
+    'Linux':  'libautotrace.so'
+}
 
 # load depended-on libs into global namespace
 # otherwise loading autotrace will fail with 'Symbol not found'
 # https://stackoverflow.com/questions/39239775/python-ctypes-link-multiple-shared-library-with-example-gsl-gslcblas
-deps = ['libglib-2.0.0.dylib','libGraphicsMagick.3.dylib', 'libpstoedit.0.dylib', 'libgobject-2.0.0.dylib' ]
-for dep in deps:
-    ctypes.CDLL(f'{os.path.dirname(lib_path)}/{dep}', mode=ctypes.RTLD_GLOBAL)
+deps = {
+    'Darwin': ['libglib-2.0.0.dylib','libGraphicsMagick.3.dylib', 'libpstoedit.0.dylib', 'libgobject-2.0.0.dylib'],
+    'Linux':  ['libglib-2.0.so', 'libMagick++-6.Q16.so.8', 'libpstoedit.so.0', 'libgobject-2.0.so']
+}
+for dep in deps[_os]:
+    if _os == 'Darwin':
+        ctypes.CDLL(f'{os.path.dirname(lib_path[_os])}/{dep}', mode=ctypes.RTLD_GLOBAL)
+    else:
+        ctypes.CDLL(dep, mode=ctypes.RTLD_GLOBAL)
 
 # others = ['libffi.6.dylib', 'libfreetype.6.dylib', 'libgmodule-2.0.0.dylib', 'libgthread-2.0.0.dylib', 'libintl.8.dylib', 'liblcms2.2.dylib', 'libltdl.7.dylib', 'libpcre.1.dylib', 'libpng16.16.dylib']
 # for dep in others:
 #     ctypes.CDLL(f'{os.path.dirname(lib_path)}/{dep}', mode=ctypes.RTLD_GLOBAL)
 
-at = ctypes.cdll.LoadLibrary(lib_path)
-print(f'autotrace library opened: {lib_path}')
+at = ctypes.cdll.LoadLibrary(lib_path[_os])
+print(f'autotrace library opened: {lib_path[_os]}')
 
 # https://gitlab.gnome.org/GNOME/glib/-/blob/master/glib/gtypes.h
 gfloat = ctypes.c_float # gfloat -> float -> c_float
