@@ -1,6 +1,6 @@
-# autotrace-test
+# autotrace-py
 
-Testing autotrace [1] with python.
-Goal is centerline tracing of raster images to paths.
+Autotrace [1] for python.
+Intended use is centerline tracing of raster images to paths.
 
 [1] https://github.com/autotrace/autotrace
