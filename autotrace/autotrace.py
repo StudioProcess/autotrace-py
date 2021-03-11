@@ -16,7 +16,10 @@ if _os not in ['Darwin', 'Linux']: raise RuntimeError(f'Platform not supported: 
 
 # check that autotrace is installed
 if _os == 'Linux' and shutil.which('autotrace') == None:
-    raise RuntimeError(f'Please make sure autotrace is installed by running: sudo apt install lib/linux/autotrace_0.40.0-20200219_all.deb')
+    import glob
+    pattern = path.join( path.dirname(path.abspath(__file__)), 'lib/linux/*.deb' )
+    abs_path = path.abspath( glob.glob(pattern)[0] )
+    raise RuntimeError(f'Please make sure autotrace is installed by running: sudo apt install {abs_path}')
 
 lib_path = {
     'Darwin': 'lib/darwin/autotrace.app/Contents/Frameworks/libautotrace.dylib',
@@ -24,7 +27,7 @@ lib_path = {
 }
 
 if _os == 'Darwin':
-    lib_path[_os] = path.join( path.dirname( path.abspath(__file__) ), lib_path[_os] ) # make absolute path
+    lib_path[_os] = path.join( path.dirname(path.abspath(__file__)), lib_path[_os] ) # make absolute path
 
 
 # load depended-on libs into global namespace
