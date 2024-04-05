@@ -35,7 +35,7 @@ if _os == 'Darwin':
 # https://stackoverflow.com/questions/39239775/python-ctypes-link-multiple-shared-library-with-example-gsl-gslcblas
 deps = {
     'Darwin': ['libglib-2.0.0.dylib','libGraphicsMagick.3.dylib', 'libpstoedit.0.dylib', 'libgobject-2.0.0.dylib'],
-    'Linux':  ['libglib-2.0.so', 'libMagick++-6.Q16.so.8', 'libpstoedit.so.0', 'libgobject-2.0.so']
+    'Linux':  ['libglib-2.0.so.0', 'libMagick++-6.Q16.so.8', 'libpstoedit.so.0', 'libgobject-2.0.so.0']
 }
 for dep in deps[_os]:
     if _os == 'Darwin':
