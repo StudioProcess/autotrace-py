@@ -1,6 +1,6 @@
 from setuptools import setup
 
-with open('requirements_pkg.txt') as f:
+with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 def glob(pattern, dir='.'):
@@ -15,7 +15,7 @@ def glob(pattern, dir='.'):
 
 setup(
     name='autotrace-py', # required
-    version='0.1.0',  # required
+    version='0.2.0',  # required
     description='Python interface for Autotrace',
     url='https://github.com/StudioProcess/autotrace-py',
     author='Martin Grödl',

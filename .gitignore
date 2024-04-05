@@ -8,3 +8,4 @@ __pycache__
 img_seq
 traced_seq
 autotrace_py.egg-info
+build
