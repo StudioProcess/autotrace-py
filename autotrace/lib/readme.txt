@@ -4,33 +4,39 @@ Darwin:
 https://github.com/autotrace/autotrace/releases/tag/travis-20200219.65
 
 Linux:
-Since the above broke on Ubuntu 22.04, built from source https://github.com/autotrace/autotrace/commit/cba2237e379ab82d4c0c5d1ec86f7b69732c162f
+Since the above broke starting from Ubuntu 22.04, built from source https://github.com/autotrace/autotrace/commit/9386166585f6466f7ef09546e3edd1fab4bb5882
 
 
-Fresh Ubunutu 22.04 VM:
+Fresh Ubunutu 24.04 VM (running on Pop!_OS 22.04):
 ```
+#sudo snap remove --purge multipass
 sudo snap install multipass
-multipass launch --name autotrace-build --cpus 4 --memory 8G --mount $HOME 22.04
-multipass exec autotrace-build -- HOST_HOME=$HOME bash
 
-multipass exec -- HOST_HOME=$HOME bash
-```
+multipass launch --name autotrace-build --cpus 4 --memory 8G --disk 8G --mount $HOME:/home/ubuntu/host-home 24.04
 
-Build:
-```
-git clone https://github.com/autotrace/autotrace.git
-cd autotrace
-git reset --hard cba2237
+multipass shell autotrace-build
 
-sudo apt install -y libgraphicsmagick1-dev libpng-dev libexiv2-dev libtiff-dev libjpeg-dev libxml2-dev libbz2-dev libfreetype6-dev libpstoedit-dev autoconf automake libtool intltool autopoint
-sudo apt install -y build-essential
+git clone https://github.com/autotrace/autotrace.git; cd autotrace; git reset --hard 9386166
+
+sudo apt install -y build-essential 
+sudo apt install -y autotools-dev autopoint libtool intltool
+sudo apt install -y libpng-dev libexif-dev libtiff5-dev libjpeg-dev libxml2-dev libbz2-dev libpstoedit-dev libmagickcore-dev libfreetype6-dev
+
 ./autogen.sh
-./configure
+./configure --prefix=/usr --without-pstoedit
 make
-make check
-make install
-./distribute/distribute.sh
 
-# Output files are written to `distribute/out`; Copy to host machine's home
-cp distribute/out/*.deb $HOST_HOME
-``` 
+# copy necessary libs
+mkdir -p libs
+cp .libs/libautotrace.so libs
+cp /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0 libs
+cp /usr/lib/x86_64-linux-gnu/libMagickCore-6.Q16.so.7 libs
+cp /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0 libs
+
+# copy to host
+mkdir -p ~/host-home/autotrace-libs
+cp libs/* ~/host-home/autotrace-libs
+
+exit
+cd $HOME/autotrace-libs
+```

@@ -15,7 +15,7 @@ def glob(pattern, dir='.'):
 
 setup(
     name='autotrace-py', # required
-    version='0.2.0',  # required
+    version='0.3.0',  # required
     description='Python interface for Autotrace',
     url='https://github.com/StudioProcess/autotrace-py',
     author='Martin Grödl',

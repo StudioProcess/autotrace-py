@@ -1,2 +1,1 @@
-from autotrace import autotrace
-print( dir(autotrace) )
+python3 setup.py install
