@@ -10,7 +10,7 @@ Since the above broke starting from Ubuntu 22.04, built from source https://gith
 Fresh Ubunutu 24.04 VM (running on Pop!_OS 22.04):
 ```
 #sudo snap remove --purge multipass
-sudo snap install multipass
+#sudo snap install multipass
 
 multipass launch --name autotrace-build --cpus 4 --memory 8G --disk 8G --mount $HOME:/home/ubuntu/host-home 24.04
 
