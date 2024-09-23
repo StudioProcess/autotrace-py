@@ -3,7 +3,7 @@
 Autotrace [1] for python.
 Intended use is centerline tracing of raster images to paths.
 
-Note: Originally created with Python 3.7.10; Updated for Python 3.12 and Ubuntu 24.04.
+Note: Created with Python 3.7.10; Updated for Ubuntu 24.04.
 
 Usage:
 ```
